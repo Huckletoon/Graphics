@@ -146,18 +146,40 @@ class MeshWidget {
       emissive: 0x072534
     })
 
-    // Wireframe material for the central geometry
-    this._wireMaterial = new THREE.MeshPhongMaterial({
-      flatShading: false,
-      wireframeLinewidth: 2.0,
-      color: 0xFFFFFF
+    // LOOKHERE: changing wireframe out for a ShaderMaterial
+    // console.log("initialize")
+    let phongUniforms = {
+      u_Color: { value: new THREE.Vector3(1.0, 100.0 / 255.0, 0.0) },
+      u_SpecColor: { value: new THREE.Vector3(170.0 / 255.0, 170.0 / 255.0, 170.0 / 255.0) },
+      rawLightPos: { value: new THREE.Vector3(1.0, 2.0, 4.0) },
+      lightDiff: { value: new THREE.Vector3(1.0, 170.0 / 255.0, 119.0 / 255.0) },
+      kAmb: {value: 0.3},
+      kDiff: {value: 0.5},
+      kSpec: {value: 0.4},
+      lightAmb: { value: new THREE.Vector3(0.7, 0.7, 0.7) },
+      shininess: { value: 5.0 },
+      lightSpec: { value: new THREE.Vector3(1.0, 1.0, 1.0) }
+    }
+
+    this._wireMaterial = new THREE.ShaderMaterial({
+      uniforms: phongUniforms,
+      vertexShader: document.getElementById('vertexPhong').textContent,
+      fragmentShader: document.getElementById('fragmentPhong').textContent
     })
 
-    this._wireMaterial.wireframe = true
-    this._wireMaterial.polygonOffset = true
-    this._wireMaterial.polygonOffsetFactor = 1
-    this._wireMaterial.polygonOffsetUnits = 0.01
+    /** Berrier's code
+    // Wireframe material for the central geometry
+    // this._wireMaterial = new THREE.MeshPhongMaterial({
+    //   flatShading: false,
+    //   wireframeLinewidth: 2.0,
+    //   color: 0xFFFFFF
+    // })
 
+    // this._wireMaterial.wireframe = true
+    // this._wireMaterial.polygonOffset = true
+    // this._wireMaterial.polygonOffsetFactor = 1
+    // this._wireMaterial.polygonOffsetUnits = 0.01
+    **/
     // Debugging material that visualizes the surface normals
     this._debugMaterial = new THREE.MeshNormalMaterial()
 
@@ -166,6 +188,7 @@ class MeshWidget {
   }
 
   requestRebuild (geometryMesh) {
+    // console.log("request rebuild")
     // Dispose of old geometry
     if (typeof this._solidMesh !== 'undefined' && this._solidMesh != null) {
       this._solidMesh = null
@@ -181,6 +204,7 @@ class MeshWidget {
   }
 
   rebuildScene () {
+    // console.log("rebuild scene")
     // re-make the main scene
     this._scene = null // To try and force GC
     this._scene = new THREE.Scene()
@@ -189,9 +213,9 @@ class MeshWidget {
 
     // Lights
     this._scene.add(new THREE.HemisphereLight(0x443333, 0x111122))
-    this._scene.add(makeShadowedLight(1, 1, 1, 0xffffff, 1.35))
-    this._scene.add(makeShadowedLight(0.5, 1, -1, 0xffaa00, 1))
-
+    // this._scene.add(makeShadowedLight(1, 1, 1, 0xffffff, 1))
+    this._scene.add(makeShadowedLight(1, 2, 4, 0xffaa77, 1))
+    console.log(this._scene.children[2])
     // Central geometry
     if (this._solidMesh) {
       // Add to scene

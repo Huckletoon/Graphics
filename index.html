@@ -11,8 +11,79 @@
 </head>
 
 <body style="padding-top:15px; padding-bottom:15px;">
-  <script type="x-shader/x-vertex" id="vertexPhong"></script>
-  <script type="x-shader/x-fragment" id="fragmentPhong"></script>
+
+<!-- Additional education resource: -->
+<!-- http://www.ianww.com/blog/2012/12/16/an-introduction-to-custom-shaders-with-three-dot-js/ -->
+<!-- http://blog.cjgammon.com/threejs-custom-shader-material -->
+<!-- https://en.wikipedia.org/wiki/Phong_reflection_model -->
+<!-- http://www.lighthouse3d.com/tutorials/glsl-tutorial/directional-lights-per-pixel/ -->
+<!-- https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php -->
+  <script type="x-shader/x-vertex" id="vertexPhong">
+
+    uniform vec3 u_Color;
+    uniform vec3 u_SpecColor;
+    uniform vec3 rawLightPos;
+    uniform float kAmb;
+    uniform float kDiff;
+    uniform float kSpec;
+    uniform vec3 lightAmb;
+    uniform vec3 lightDiff;
+    uniform vec3 lightSpec;
+    uniform float shininess;
+
+    varying vec3 f_norm;
+    varying vec3 f_pos;
+    varying vec3 vHat;
+
+    void main()
+    {
+      vec4 vertPos = modelViewMatrix * vec4(position, 1.0);
+      vHat = vec3(vertPos.xyz);
+      f_norm = normal;
+      gl_Position = projectionMatrix * vertPos;
+    }
+  </script>
+  <script type="x-shader/x-fragment" id="fragmentPhong">
+
+    uniform vec3 u_Color;
+    uniform vec3 u_SpecColor;
+    uniform mat4 modelViewMatrix;
+    uniform mat4 projectionMatrix;
+    uniform float kAmb;
+    uniform float kDiff;
+    uniform float kSpec;
+    uniform float shininess;
+    uniform vec3 rawLightPos;
+    uniform vec3 lightDiff;
+    uniform vec3 lightAmb;
+    uniform vec3 lightSpec;
+
+    varying vec3 f_norm;
+    varying vec3 f_pos;
+    varying vec3 vHat;
+
+    void main()
+    {
+      vec3 L = normalize(rawLightPos - vHat);
+      vec3 V = normalize(vHat * (-1.0));
+      vec3 R = dot(L, abs(f_norm)) * f_norm * 2.0 - L;
+      // vec3 R = reflect(-L, normalize(f_norm));
+
+      vec3 iDiff = u_Color * lightDiff * kDiff * max( dot(L, f_norm), 0.0);
+      iDiff = clamp(iDiff, 0.0, 1.0);
+
+      vec3 iAmb = u_Color * lightAmb * kAmb;
+
+      vec3 iSpec = u_SpecColor * lightSpec * kSpec * pow( max( dot( R, V ), 0.0), shininess);
+      iSpec = clamp(iSpec, 0.0, 1.0);
+
+      vec3 iFinal = iDiff + iAmb + iSpec;
+
+      gl_FragColor = vec4(iFinal, 1.0);
+    }
+  </script>
+
+
   <div class="container">
 
     <div class="page-header">
@@ -35,7 +106,7 @@
           <select class="form-control" id="renderingMode">
             <option value="Default">Default</option>
             <option value="Wire1">Wireframe + Default</option>
-            <option value="Wire2">Wireframe Only</option>
+            <option value="Wire2">Phong Illumination Model Shader</option>
             <option disabled>──────────</option>
             <option value="NormalDebug">Normals as Colors</option>
           </select>
