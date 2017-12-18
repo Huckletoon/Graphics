@@ -19,6 +19,7 @@
 <!-- http://www.lighthouse3d.com/tutorials/glsl-tutorial/directional-lights-per-pixel/ -->
 <!-- https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/lighting.php -->
 <!-- http://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html -->
+<!-- http://sunandblackcat.com/tipFullView.php?l=eng&topicid=15 -->
   <script type="x-shader/x-vertex" id="vertexPhong">
 
     uniform vec3 u_Color;
@@ -260,6 +261,24 @@
       iFinal = ceil(iFinal * shades) / shades;
 
       gl_FragColor = vec4(iFinal * u_Color, 1.0);
+    }
+  </script>
+  <script type="x-shader/x-vertex" id="vertexOutline">
+    uniform float lineThick;
+
+    void main()
+    {
+      vec4 pos = modelViewMatrix * vec4(position + normal * lineThick, 1.0);
+      gl_Position = projectionMatrix * pos;
+    }
+
+  </script>
+  <script type="x-shader/x-fragment" id="fragmentOutline">
+    uniform vec3 lineColor;
+
+    void main()
+    {
+      gl_FragColor = vec4(lineColor, 1.0);
     }
   </script>
 

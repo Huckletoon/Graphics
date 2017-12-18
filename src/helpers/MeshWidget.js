@@ -165,7 +165,9 @@ class MeshWidget {
       lightDiff: { value: new THREE.Vector3(1.0, 191.0 / 255.0, 110.0 / 255.0) },
       lightAmb: { value: new THREE.Vector3(0.7, 0.7, 0.7) },
       lightSpec: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
-      shades: { value: 3.0 }
+      shades: { value: 7.0 },
+      lineThick: { value: 1.5 },
+      lineColor: { value: new THREE.Vector3(0.0, 0.0, 0.0) }
     }
 
     // Normal material for the central geometry
@@ -443,8 +445,19 @@ class MeshWidget {
       this._rebuildRequested = false
     }
 
+    // LOOKHERE: multipass rendering
     // Re-render the scene
+    // // this._renderer.render(this._scene, this._camera)
+    // this._celMaterial.vertexShader = document.getElementById('vertexOutline').textContent
+    // this._celMaterial.fragmentShader = document.getElementById('fragmentOutline').textContent
+    // this._debugMaterial.vertexShader = document.getElementById('vertexOutline').textContent
+    // this._debugMaterial.fragmentShader = document.getElementById('fragmentOutline').textContent
     this._renderer.render(this._scene, this._camera)
+    // this._celMaterial.vertexShader = document.getElementById('vertexCel').textContent
+    // this._celMaterial.fragmentShader = document.getElementById('fragmentCel').textContent
+    // this._debugMaterial.vertexShader = document.getElementById('vertexCel').textContent
+    // this._debugMaterial.fragmentShader = document.getElementById('fragmentFixedCel').textContent
+    // this._renderer.render(this._scene, this._camera)
   }
 }
 
