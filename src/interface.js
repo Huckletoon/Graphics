@@ -293,30 +293,33 @@ function handleRenderModeChange () {
     case 0:
       Interface.widget.toggleSolid(true)
       Interface.widget.toggleWireframe(false)
+      Interface.widget.toggleCel(false)
       Interface.widget.toggleDebug(false)
       break
 
     case 1:
-      Interface.widget.toggleSolid(true)
+      Interface.widget.toggleSolid(false)
       Interface.widget.toggleWireframe(true)
+      Interface.widget.toggleCel(false)
       Interface.widget.toggleDebug(false)
       break
 
     case 2:
+      // empty
+      break
+
+    case 3:
       Interface.widget.toggleSolid(false)
-      Interface.widget.toggleWireframe(true)
+      Interface.widget.toggleWireframe(false)
+      Interface.widget.toggleCel(true)
       Interface.widget.toggleDebug(false)
       break
 
     case 4:
       Interface.widget.toggleSolid(false)
       Interface.widget.toggleWireframe(false)
+      Interface.widget.toggleCel(false)
       Interface.widget.toggleDebug(true)
-      break
-
-    // Selector indexes that are decorative
-    case 3:
-      // This case deliberately left blank
       break
 
     // Should never happen (but see default case above)

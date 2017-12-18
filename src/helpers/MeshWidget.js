@@ -29,6 +29,7 @@ class MeshWidget {
     // Meshes for the different render modes
     this._solidMesh = null
     this._wireMesh = null
+    this._celMesh = null
     this._debugMesh = null
 
     // Camera related properties
@@ -138,33 +139,58 @@ class MeshWidget {
     floorPlane.receiveShadow = true
     this._floorGeometry = floorPlane
 
-    // Normal material for the central geometry
-    this._solidMaterial = new THREE.MeshPhongMaterial({
-      flatShading: false,
-      side: THREE.DoubleSide,
-      color: 0x156289,
-      emissive: 0x072534
-    })
-
     // LOOKHERE: changing wireframe out for a ShaderMaterial
     // console.log("initialize")
     let phongUniforms = {
-      u_Color: { value: new THREE.Vector3(1.0, 100.0 / 255.0, 0.0) },
+      u_Color: { value: new THREE.Vector3(1.0, 100.0 / 255.0, 0.5) },
       u_SpecColor: { value: new THREE.Vector3(170.0 / 255.0, 170.0 / 255.0, 170.0 / 255.0) },
-      rawLightPos: { value: new THREE.Vector3(1.0, 2.0, 4.0) },
-      lightDiff: { value: new THREE.Vector3(1.0, 170.0 / 255.0, 119.0 / 255.0) },
+      rawLightPos: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
       kAmb: {value: 0.3},
       kDiff: {value: 0.5},
       kSpec: {value: 0.4},
+      shininess: { value: 7.0 },
+      lightDiff: { value: new THREE.Vector3(1.0, 191.0 / 255.0, 110.0 / 255.0) },
       lightAmb: { value: new THREE.Vector3(0.7, 0.7, 0.7) },
-      shininess: { value: 5.0 },
       lightSpec: { value: new THREE.Vector3(1.0, 1.0, 1.0) }
     }
+
+    let celUniforms = {
+      u_Color: { value: new THREE.Vector3(1.0, 100.0 / 255.0, 0.5) },
+      u_SpecColor: { value: new THREE.Vector3(170.0 / 255.0, 170.0 / 255.0, 170.0 / 255.0) },
+      rawLightPos: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+      kAmb: {value: 0.3},
+      kDiff: {value: 0.5},
+      kSpec: {value: 0.4},
+      shininess: { value: 7.0 },
+      lightDiff: { value: new THREE.Vector3(1.0, 191.0 / 255.0, 110.0 / 255.0) },
+      lightAmb: { value: new THREE.Vector3(0.7, 0.7, 0.7) },
+      lightSpec: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+      shades: { value: 3.0 }
+    }
+
+    // Normal material for the central geometry
+    this._solidMaterial = new THREE.ShaderMaterial({
+      uniforms: phongUniforms,
+      vertexShader: document.getElementById('vertexPhong').textContent,
+      fragmentShader: document.getElementById('fragmentPhong').textContent
+    })
 
     this._wireMaterial = new THREE.ShaderMaterial({
       uniforms: phongUniforms,
       vertexShader: document.getElementById('vertexPhong').textContent,
-      fragmentShader: document.getElementById('fragmentPhong').textContent
+      fragmentShader: document.getElementById('fragmentFixedPhong').textContent
+    })
+
+    this._celMaterial = new THREE.ShaderMaterial({
+      uniforms: celUniforms,
+      vertexShader: document.getElementById('vertexCel').textContent,
+      fragmentShader: document.getElementById('fragmentCel').textContent
+    })
+
+    this._debugMaterial = new THREE.ShaderMaterial({
+      uniforms: celUniforms,
+      vertexShader: document.getElementById('vertexCel').textContent,
+      fragmentShader: document.getElementById('fragmentFixedCel').textContent
     })
 
     /** Berrier's code
@@ -181,7 +207,7 @@ class MeshWidget {
     // this._wireMaterial.polygonOffsetUnits = 0.01
     **/
     // Debugging material that visualizes the surface normals
-    this._debugMaterial = new THREE.MeshNormalMaterial()
+    // this._debugMaterial = new THREE.MeshNormalMaterial()
 
     // Build the initial scene
     this.rebuildScene()
@@ -214,7 +240,7 @@ class MeshWidget {
     // Lights
     this._scene.add(new THREE.HemisphereLight(0x443333, 0x111122))
     // this._scene.add(makeShadowedLight(1, 1, 1, 0xffffff, 1))
-    this._scene.add(makeShadowedLight(1, 2, 4, 0xffaa77, 1))
+    this._scene.add(makeShadowedLight(1, 1, 1, 0xffaa77, 1))
     console.log(this._scene.children[2])
     // Central geometry
     if (this._solidMesh) {
@@ -287,6 +313,12 @@ class MeshWidget {
     }
   }
 
+  toggleCel (enable) {
+    if (this._celMesh != null) {
+      this._celMesh.visible = enable
+    }
+  }
+
   toggleDebug (enable) {
     if (this._debugMesh != null) {
       this._debugMesh.visible = enable
@@ -313,6 +345,27 @@ class MeshWidget {
       // Add to scene re-setting prior visibility
       this._scene.add(this._wireMesh)
       this._wireMesh.visible = wireVisible
+    }
+
+    // Clear out old Cel Mesh
+    let celVisible = false
+    if (typeof this._celMesh !== 'undefined' && this._celMesh !== null) {
+      celVisible = this._celMesh.visible
+      this._scene.remove(this._celMesh)
+      this._celMesh = null
+    }
+
+    if (this._solidMesh) {
+      // Make/Re-make cel mesh
+      this._celMesh = this._solidMesh.clone()
+      this._celMesh.traverse((node) => {
+        node.material = this._celMaterial
+        node.receiveShadow = false
+      })
+
+      // Add to scene re-setting prior visibility
+      this._scene.add(this._celMesh)
+      this._celMesh.visible = celVisible
     }
 
     // Clear out old debug mesh
